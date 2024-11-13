@@ -1,0 +1,26 @@
+In the first page, the members of the group and the contribution of each member to the assignment; and the list of sources used (as noted in the course web page in general for all homeworks and assignments).
+Contributions ->
+Sinehan ->
+Vedant ->
+Nihar ->
+
+Sources Used ->
+
+
+A description of the design decisions you took, in particular the choice for data structures (e.g. for the representation of the state and legal actions, the search tree, etc.) and functions, with an explanation of what they do.
+-> 
+
+An explanation of your heuristic evaluation function, backed by your understanding of the game.
+-> 
+
+A discussion of issues that are relevant for the game: what is the (typical) branching factor? how deep can the game run? can cycles occur and if so how to deal with them? how many states are terminal? etc.
+-> 
+
+1. Game State Representation: A way to represent the board, the positions of both L pieces, and the neutral pieces.
+2. Legal Actions and State Transition: Functions to generate all valid moves and update the game state.
+3. Game Modes: Implementing different modes (human vs. human, human vs. computer, computer vs. computer).
+4. AI Algorithms: Implementing minimax and alpha-beta pruning with a depth limit.
+5. Heuristic Evaluation Function: A function to estimate the value of a game state for the AI.
+6. User Input Handling: Parsing moves entered by the user in the specified format.
+7. Board Visualization: Printing or plotting the board to show game progress.
+8. Optional Enhancements: Undo functionality, game saving, improved UI, etc.
