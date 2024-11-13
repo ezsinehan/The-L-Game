@@ -27,7 +27,8 @@ class LGame:
   def printGrid(self):
     #prints curr grid
     for row in self.grid:
-      print(" ".join(row))
+      print(" | ".join(f"{cell:2}" for cell in row))
+      print("-" * 17)
 
 if __name__ == "__main__":
   game = LGame()
