@@ -30,6 +30,14 @@ class LGame:
       print(" | ".join(f"{cell:2}" for cell in row))
       print("-" * 17)
 
+  def isMoveLegal(self, move):
+    return True
+    # check if move is legal
+
+  def makeMove(self, move):
+    #make move
+    return
+  
   def startGame(self):
     # starting game
     self.printGrid()
@@ -41,7 +49,9 @@ class LGame:
         print("gg")
         break
 
-      print(f"You entered: {move}")
+      if self.isMoveLegal(move):
+        print(f"You entered: {move}")
+        self.makeMove(move)
 
       self.printGrid()
 
