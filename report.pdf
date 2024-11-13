@@ -2,14 +2,17 @@ In the first page, the members of the group and the contribution of each member 
 Contributions ->
 Sinehan ->
   -> Set up basic ascii grid
+  -> Set up framework for making move and checking whether move is legal
 Vedant ->
+  -> 
 Nihar Palkonda->
 
 Sources Used ->
-
+  -> https://hwwmath.looiwenli.com/l-game -> We used this interactive game to learn how to play.
 
 A description of the design decisions you took, in particular the choice for data structures (e.g. for the representation of the state and legal actions, the search tree, etc.) and functions, with an explanation of what they do.
--> Day1 -> We decided to start by designing the game representation as a 2D matrix and print it through text in the terminal, at least for now. 
+-> We decided to start by designing the game representation as a 2D matrix and print it through text in the terminal, at least for now. 
+-> 
 
 An explanation of your heuristic evaluation function, backed by your understanding of the game.
 -> 
