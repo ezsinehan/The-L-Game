@@ -30,7 +30,22 @@ class LGame:
       print(" | ".join(f"{cell:2}" for cell in row))
       print("-" * 17)
 
+  def startGame(self):
+    # starting game
+    self.printGrid()
+
+    while True:
+      move = input("Enter your move or q to quit")
+
+      if move.lower() == 'q':
+        print("gg")
+        break
+
+      print(f"You entered: {move}")
+
+      self.printGrid()
+
 if __name__ == "__main__":
   game = LGame()
-  game.printGrid()
+  game.startGame()
   

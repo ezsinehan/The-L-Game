@@ -1,6 +1,7 @@
 In the first page, the members of the group and the contribution of each member to the assignment; and the list of sources used (as noted in the course web page in general for all homeworks and assignments).
 Contributions ->
 Sinehan ->
+  -> Set up basic ascii grid
 Vedant ->
 Nihar Palkonda->
 
@@ -8,7 +9,7 @@ Sources Used ->
 
 
 A description of the design decisions you took, in particular the choice for data structures (e.g. for the representation of the state and legal actions, the search tree, etc.) and functions, with an explanation of what they do.
--> 
+-> Day1 -> We decided to start by designing the game representation as a 2D matrix and print it through text in the terminal, at least for now. 
 
 An explanation of your heuristic evaluation function, backed by your understanding of the game.
 -> 
