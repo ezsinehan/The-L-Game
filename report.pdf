@@ -2,7 +2,8 @@ In the first page, the members of the group and the contribution of each member 
 Contributions ->
 Sinehan ->
   -> Set up basic ascii grid
-  -> Set up framework for making move and checking whether move is legal
+  -> Set up framework for move making/legal move checking
+  -> Coded legal move checking
 Vedant ->
   -> 
 Nihar Palkonda->
