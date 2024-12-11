@@ -3,7 +3,8 @@ Contributions ->
 Sinehan ->
   -> Set up basic ascii grid
   -> Set up framework for move making/legal move checking
-  -> Coded legal move checking
+  -> Coded legal move generation
+  -> 
 Vedant ->
   -> 
 Nihar Palkonda->
