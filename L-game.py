@@ -70,6 +70,76 @@ class LGame:
             print(" | ".join(f"{cell:2}" for cell in row))
             print("-" * 17)
 
+    def parseInput(self, input_str):
+        print(input_str)
+        parts = input_str.split()
+
+        if len(parts) != 3 and len(parts) != 7:
+            print(len(parts))
+            print("Invalid Format")
+            return None, None
+
+        x, y = int(parts[1])-1, int(parts[0])-1
+        orientation = parts[2].lower()
+
+        initial_nx, initial_ny = 0, 0
+        final_nx, final_ny = 0, 0
+
+        if len(parts) == 7:
+            initial_nx, initial_ny = int(parts[4])-1, int(parts[3])-1
+            final_nx, final_ny =int(parts[6])-1, int(parts[5])-1
+            if initial_nx < 0 or initial_nx >= 4 or initial_ny < 0 or initial_ny >= 4 or self.grid[initial_nx][initial_ny] != 'N':
+                print("Invalid Initial Neutral Coordinates")
+                return None, None
+
+            if final_nx < 0 or final_nx >= 4 or final_ny < 0 or final_ny >= 4 or self.grid[final_nx][final_ny] != '0':
+                print("Invalid Final Neutral Coordinates")
+                return None, None
+
+        if orientation == 'n':  # North
+            valid_moves = [(x-1, y-1), (x, y-1), (x, y), (x-1, y)]
+            valid_moves_mirrored = [(x-1, y), (x, y), (x, y+1), (x, y+2)]
+        elif orientation == 's':  # South
+            valid_moves = [(x, y-2), (x, y-1), (x, y), (x+1, y)]
+            valid_moves_mirrored = [(x+1, y), (x, y), (x, y+1), (x, y+2)]
+        elif orientation == 'e':  # East
+            valid_moves = [(x-2, y), (x-1, y), (x, y), (x, y+1)]
+            valid_moves_mirrored = [(x+1, y), (x+2, y), (x, y), (x, y+1)]
+        elif orientation == 'w':  # West
+            valid_moves = [(x, y-1), (x, y), (x+1, y-1), (x+1, y)]
+            valid_moves_mirrored = [(x, y-1), (x, y), (x+1, y), (x+2, y)]
+        else:
+            print(f"Unknown orientation: {orientation}")
+            return None, None
+        
+        legal_moves = self.genLegalMoves(self.currentPlayer)
+        valid_moves_set = set(valid_moves)
+        valid_moves_mirrored_set = set(valid_moves_mirrored)
+        legal_moves_sets = [set(move) for move in legal_moves]
+
+        new_l_position = None
+        # print("Our move", valid_moves)
+        # print("Our move mirrored", valid_moves_mirrored)
+        # print("Legal moves", legal_moves)
+        # print("Legal moves Mirrored")
+
+        if valid_moves_set in legal_moves_sets:
+            new_l_position = valid_moves
+        elif valid_moves_mirrored_set in legal_moves_sets:
+            new_l_position = valid_moves_mirrored
+
+        if new_l_position:
+        #     print(f"Valid move found: {new_l_position}")
+        #     self.makeMove(new_l_position)
+        #     return True
+        # else:
+        #     print("Invalid move")
+        #     return False
+            return new_l_position, [initial_nx, initial_ny, final_nx, final_ny]
+        
+        print("Invalid Move")
+        return None
+
     def startGame(self):
         while True:
             mode = input("Select mode: (1) Human vs Human, (2) Human vs Computer, (3) Computer vs Computer: ")
@@ -102,32 +172,38 @@ class LGame:
 
         while True:
             legalMoves = self.genLegalMoves(self.currentPlayer)
-            if not legalMoves:
+            if len(legalMoves) <= 1:
                 winner = 'L2' if self.currentPlayer == 'L1' else 'L1'
                 print(f"No legal moves left for {self.currentPlayer}. {winner} wins!")
                 break
             print(f"Current Player: {self.currentPlayer}")
             cType = self.p1Type if self.currentPlayer == 'L1' else self.p2Type
             if cType == 'human':
-                print("Legal moves (choose a number):")
-                for idx, move in enumerate(legalMoves):
-                    print(f"{idx}: {move}")
-                userInput = input("Enter move index or 'q' to quit: ")
-                if userInput.lower() == 'q':
-                    print("Quitting the game.")
-                    break
-                if not userInput.isdigit():
-                    continue
-                moveIndex = int(userInput)
-                if moveIndex < 0 or moveIndex >= len(legalMoves):
-                    continue
-                chosenMove = legalMoves[moveIndex]
+                chosenMove = None
+                while chosenMove == None:
+                    userInput = input("Enter your move: ")
+                    if userInput.lower() == 'q':
+                        print("Quitting the game.")
+                        return 0
+                    chosenMove, chosenNeutralMove = self.parseInput(userInput)
+                # print("Legal moves (choose a number):")
+                # for idx, move in enumerate(legalMoves):
+                #     print(f"{idx}: {move}")
+
+                # if not userInput.isdigit():
+                #     continue
+                # moveIndex = int(userInput)
+                # if moveIndex < 0 or moveIndex >= len(legalMoves):
+                #     continue
+                # chosenMove = legalMoves[moveIndex]
             else:
                 chosenMove = self.chooseAiMoveMinimax(legalMoves, self.currentPlayer, self.aiDepth)
+                chosenNeutralMove = None
             self.makeMove(chosenMove)
             self.printGrid()
-            self.moveNeutralPiece()
+            self.moveNeutralPiece(chosenNeutralMove)
             self.printGrid()
+            # print(chosenNeutralMove)
             self.currentPlayer = 'L2' if self.currentPlayer == 'L1' else 'L1'
 
     def makeMove(self, newPositions):
@@ -139,37 +215,45 @@ class LGame:
         else:
             self.p2Pos = newPositions
 
-    def moveNeutralPiece(self):
+    def moveNeutralPiece(self, chosenNeutralMove):
         cType = self.p1Type if self.currentPlayer == 'L1' else self.p2Type
         if cType == 'human':
-            if not self.neutralPieces:
-                return
-            print("Would you like to move a neutral piece? Enter 'no' to skip or the index.")
-            for i, pos in enumerate(self.neutralPieces):
-                print(f"{i}: {pos}")
-            choice = input("Your choice: ")
-            if choice.lower() == 'no':
-                return
-            if not choice.isdigit():
-                return
-            pieceIndex = int(choice)
-            if pieceIndex < 0 or pieceIndex >= len(self.neutralPieces):
-                return
-            while True:
-                coordsInput = input("Enter new coordinates for the neutral piece (x,y) or 'no' to skip: ")
-                if coordsInput.lower() == 'no':
-                    return
-                try:
-                    xStr, yStr = coordsInput.split(',')
-                    x, y = int(xStr.strip()), int(yStr.strip())
-                except (ValueError, IndexError):
-                    continue
-                if 0 <= x < 4 and 0 <= y < 4 and self.grid[x][y] == '0':
-                    oldPos = self.neutralPieces[pieceIndex]
-                    self.grid[oldPos[0]][oldPos[1]] = '0'
-                    self.grid[x][y] = 'N'
-                    self.neutralPieces[pieceIndex] = (x, y)
-                    break
+            if chosenNeutralMove != None:
+                self.grid[chosenNeutralMove[0]][chosenNeutralMove[1]] = '0'
+                self.grid[chosenNeutralMove[2]][chosenNeutralMove[3]] = 'N'
+
+                for idx, piece in enumerate(self.neutralPieces):
+                    if piece == (chosenNeutralMove[1], chosenNeutralMove[0]):
+                        self.neutralPieces[idx] = (chosenNeutralMove[2], chosenNeutralMove[3])
+
+            # if not self.neutralPieces:
+            #     return
+            # print("Would you like to move a neutral piece? Enter 'no' to skip or the index.")
+            # for i, pos in enumerate(self.neutralPieces):
+            #     print(f"{i}: {pos}")
+            # choice = input("Your choice: ")
+            # if choice.lower() == 'no':
+            #     return
+            # if not choice.isdigit():
+            #     return
+            # pieceIndex = int(choice)
+            # if pieceIndex < 0 or pieceIndex >= len(self.neutralPieces):
+            #     return
+            # while True:
+            #     coordsInput = input("Enter new coordinates for the neutral piece (x,y) or 'no' to skip: ")
+            #     if coordsInput.lower() == 'no':
+            #         return
+            #     try:
+            #         xStr, yStr = coordsInput.split(',')
+            #         x, y = int(xStr.strip()), int(yStr.strip())
+            #     except (ValueError, IndexError):
+            #         continue
+            #     if 0 <= x < 4 and 0 <= y < 4 and self.grid[x][y] == '0':
+            #         oldPos = self.neutralPieces[pieceIndex]
+            #         self.grid[oldPos[0]][oldPos[1]] = '0'
+            #         self.grid[x][y] = 'N'
+            #         self.neutralPieces[pieceIndex] = (x, y)
+            #         break
         else:
             if not self.neutralPieces:
                 return
