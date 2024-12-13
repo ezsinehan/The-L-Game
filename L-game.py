@@ -1,5 +1,7 @@
 import os
 import math
+from itertools import permutations
+
 
 class LGame:
     def __init__(self):
@@ -38,18 +40,28 @@ class LGame:
 
     def genLegalMoves(self, player):
         currPos = self.p1Pos if player == 'L1' else self.p2Pos
+        
         for x, y in currPos:
             self.grid[x][y] = '0'
+        
         legalMoves = []
+        
         for i in range(4):
             for j in range(4):
                 for pos in self.lPositions.values():
                     newPos = [(i + dx, j + dy) for dx, dy in pos]
                     if self.isValidMove(newPos):
                         legalMoves.append(newPos)
+        
+        currPosPermutations = list(permutations(currPos))        
+        legalMoves = [
+            move for move in legalMoves 
+            if tuple(sorted(move)) not in map(tuple, map(sorted, currPosPermutations))
+        ]
+        
         for x, y in currPos:
             self.grid[x][y] = player
-        legalMoves = [move for move in legalMoves if move != currPos]
+        
         return legalMoves
 
     def placePiece(self, positions, player):
@@ -130,7 +142,7 @@ class LGame:
             return new_l_position, [initial_nx, initial_ny, final_nx, final_ny]
         
         print("Invalid Move")
-        return None
+        return None, None
 
     def startGame(self):
         while True:
