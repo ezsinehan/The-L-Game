@@ -6,11 +6,11 @@ from itertools import permutations
 class LGame:
     def __init__(self):
         self.grid = [['0' for _ in range(4)] for _ in range(4)]
-        self.p1Pos = [(0, 2), (1, 2), (0, 1), (2, 2)]
+        self.p1Pos = [(0, 0), (0, 1), (0, 2), (1, 0)]
         self.placePiece(self.p1Pos, 'L1')
-        self.p2Pos = [(1, 1), (2, 1), (3, 1), (3, 2)] 
+        self.p2Pos = [(3, 3), (3, 2), (3, 1), (2, 3)]
         self.placePiece(self.p2Pos, 'L2')
-        self.neutralPieces = [(0, 0), (3, 3)]
+        self.neutralPieces = [(1, 1), (2, 2)]
         self.placeNeutralPieces()
         self.lPositions = {
             'N': [(0, 0), (1, 0), (2, 0), (2, 1)],
