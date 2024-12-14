@@ -2,12 +2,13 @@ import os
 import math
 from itertools import permutations
 
+
 class LGame:
     def __init__(self):
         self.grid = [['0' for _ in range(4)] for _ in range(4)]
         self.p1Pos = [(0, 2), (1, 2), (0, 1), (2, 2)]
         self.placePiece(self.p1Pos, 'L1')
-        self.p2Pos = [(1, 1), (2, 1), (3, 1), (3, 2)]
+        self.p2Pos = [(1, 1), (2, 1), (3, 1), (3, 2)] 
         self.placePiece(self.p2Pos, 'L2')
         self.neutralPieces = [(0, 0), (3, 3)]
         self.placeNeutralPieces()
@@ -25,7 +26,6 @@ class LGame:
         self.p1Type = None
         self.p2Type = None
         self.aiDepth = None
-        self.cache = {}
 
     def clearScreen(self):
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -40,22 +40,28 @@ class LGame:
 
     def genLegalMoves(self, player):
         currPos = self.p1Pos if player == 'L1' else self.p2Pos
+        
         for x, y in currPos:
             self.grid[x][y] = '0'
+        
         legalMoves = []
+        
         for i in range(4):
             for j in range(4):
                 for pos in self.lPositions.values():
                     newPos = [(i + dx, j + dy) for dx, dy in pos]
                     if self.isValidMove(newPos):
                         legalMoves.append(newPos)
-        currPosPermutations = list(permutations(currPos))
+        
+        currPosPermutations = list(permutations(currPos))        
         legalMoves = [
-            move for move in legalMoves
+            move for move in legalMoves 
             if tuple(sorted(move)) not in map(tuple, map(sorted, currPosPermutations))
         ]
+        
         for x, y in currPos:
             self.grid[x][y] = player
+        
         return legalMoves
 
     def placePiece(self, positions, player):
@@ -79,53 +85,144 @@ class LGame:
     def parseInput(self, input_str):
         print(input_str)
         parts = input_str.split()
+
         if len(parts) != 3 and len(parts) != 7:
             print(len(parts))
             print("Invalid Format")
             return None, None
+
         x, y = int(parts[1])-1, int(parts[0])-1
         orientation = parts[2].lower()
+
         initial_nx, initial_ny = 0, 0
         final_nx, final_ny = 0, 0
+
         if len(parts) == 7:
             initial_nx, initial_ny = int(parts[4])-1, int(parts[3])-1
             final_nx, final_ny =int(parts[6])-1, int(parts[5])-1
             if initial_nx < 0 or initial_nx >= 4 or initial_ny < 0 or initial_ny >= 4 or self.grid[initial_nx][initial_ny] != 'N':
                 print("Invalid Initial Neutral Coordinates")
                 return None, None
+
             if final_nx < 0 or final_nx >= 4 or final_ny < 0 or final_ny >= 4 or self.grid[final_nx][final_ny] != '0':
                 print("Invalid Final Neutral Coordinates")
                 return None, None
-        if orientation == 'n':
+
+        if orientation == 'n':  # North
             valid_moves = [(x-1, y-1), (x, y-1), (x, y), (x-1, y)]
             valid_moves_mirrored = [(x-1, y), (x, y), (x, y+1), (x, y+2)]
-        elif orientation == 's':
+        elif orientation == 's':  # South
             valid_moves = [(x, y-2), (x, y-1), (x, y), (x+1, y)]
             valid_moves_mirrored = [(x+1, y), (x, y), (x, y+1), (x, y+2)]
-        elif orientation == 'e':
+        elif orientation == 'e':  # East
             valid_moves = [(x-2, y), (x-1, y), (x, y), (x, y+1)]
             valid_moves_mirrored = [(x+1, y), (x+2, y), (x, y), (x, y+1)]
-        elif orientation == 'w':
+        elif orientation == 'w':  # West
             valid_moves = [(x, y-1), (x, y), (x+1, y-1), (x+1, y)]
             valid_moves_mirrored = [(x, y-1), (x, y), (x+1, y), (x+2, y)]
         else:
             print(f"Unknown orientation: {orientation}")
             return None, None
+        
         legal_moves = self.genLegalMoves(self.currentPlayer)
         valid_moves_set = set(valid_moves)
         valid_moves_mirrored_set = set(valid_moves_mirrored)
         legal_moves_sets = [set(move) for move in legal_moves]
+
         new_l_position = None
+
+
         if valid_moves_set in legal_moves_sets:
             new_l_position = valid_moves
         elif valid_moves_mirrored_set in legal_moves_sets:
             new_l_position = valid_moves_mirrored
+
         if new_l_position:
+
             return new_l_position, [initial_nx, initial_ny, final_nx, final_ny]
+        
         print("Invalid Move")
         return None, None
+    
+    def editInitialState(input_str, self):
+        input_str = input("Enter new state: ")
+        initial_parts = input_str.split()
 
+        if len(initial_parts) != 6:
+            print("Invalid Format")
+            return None
+
+        l1x, l1y = int(initial_parts[1]) - 1, int(initial_parts[0]) - 1
+        l1_orientation = initial_parts[2].lower()
+
+        l2x, l2y = int(initial_parts[4]) - 1, int(initial_parts[3]) - 1
+        l2_orientation = initial_parts[5].lower()
+
+        def validate_and_update_moves(x, y, orientation, piece):
+            if orientation == 'n':  # North
+                valid_moves = [(x - 1, y - 1), (x, y - 1), (x, y), (x - 1, y)]
+                valid_moves_mirrored = [(x - 1, y), (x, y), (x, y + 1), (x, y + 2)]
+            elif orientation == 's':  # South
+                valid_moves = [(x, y - 2), (x, y - 1), (x, y), (x + 1, y)]
+                valid_moves_mirrored = [(x + 1, y), (x, y), (x, y + 1), (x, y + 2)]
+            elif orientation == 'e':  # East
+                valid_moves = [(x - 2, y), (x - 1, y), (x, y), (x, y + 1)]
+                valid_moves_mirrored = [(x + 1, y), (x + 2, y), (x, y), (x, y + 1)]
+            elif orientation == 'w':  # West
+                valid_moves = [(x, y - 1), (x, y), (x + 1, y - 1), (x + 1, y)]
+                valid_moves_mirrored = [(x, y - 1), (x, y), (x + 1, y), (x + 2, y)]
+            else:
+                print(f"Unknown orientation for {piece}: {orientation}")
+                return None
+            
+            for mx, my in valid_moves:
+                if 0 <= mx <= 3 and 0 <= my <= 3 and self.grid[mx][my] == '0':
+                    if piece == 'L1':
+                        self.p1Pos = valid_moves
+                    else:
+                        self.p2Pos = valid_moves
+                    return valid_moves
+
+            for mx, my in valid_moves_mirrored:
+                if 0 <= mx <= 3 and 0 <= my <= 3 and self.grid[mx][my] == '0':
+                    if piece == 'L1':
+                        self.p1Pos = valid_moves_mirrored
+                    else:
+                        self.p2Pos = valid_moves_mirrored
+                    return valid_moves_mirrored
+
+            return None
+
+        l1_result = validate_and_update_moves(l1x, l1y, l1_orientation, 'L1')
+        if l1_result is None:
+            print("Invalid starting position for L1")
+            return None
+
+        l2_result = validate_and_update_moves(l2x, l2y, l2_orientation, 'L2')
+        if l2_result is None:
+            print("Invalid starting position for L2")
+            return None
+
+        return l1_result, l2_result
+
+                    
     def startGame(self):
+        while True:
+            # Menu to start the game or edit starting states
+            choice = input("Select an option: (1) Start Game, (2) Edit Starting States: ")
+            if choice in ['1', '2']:
+                break
+            print("Invalid input. Please select '1' to start the game or '2' to edit the starting states.")
+
+        if choice == '2':
+            # Edit the starting states
+            while True:
+                try:
+                    new_start = self.editInitialState(self)
+                    self.makeMove(new_start)
+                except Exception as e:
+                    print(f"Error editing starting state: {e}")
+                    print("Please try again.")
         while True:
             mode = input("Select mode: (1) Human vs Human, (2) Human vs Computer, (3) Computer vs Computer: ")
             if mode in ['1', '2', '3']:
@@ -139,18 +236,22 @@ class LGame:
         else:
             self.p1Type = 'ai'
             self.p2Type = 'ai'
+
         first = input("Who goes first? Enter '1' for Player1, '2' for Player2: ")
         if first == '2':
             self.currentPlayer = 'L2'
         else:
             self.currentPlayer = 'L1'
+
         if self.p1Type == 'ai' or self.p2Type == 'ai':
             d = input("Enter search depth (e.g. 3): ")
             if d.isdigit():
                 self.aiDepth = int(d)
             else:
                 self.aiDepth = 3
+
         self.printGrid()
+
         while True:
             legalMoves = self.genLegalMoves(self.currentPlayer)
             if len(legalMoves) <= 1:
@@ -167,6 +268,7 @@ class LGame:
                         print("Quitting the game.")
                         return 0
                     chosenMove, chosenNeutralMove = self.parseInput(userInput)
+
             else:
                 chosenMove = self.chooseAiMoveMinimax(legalMoves, self.currentPlayer, self.aiDepth)
                 chosenNeutralMove = None
@@ -191,9 +293,11 @@ class LGame:
             if chosenNeutralMove != None:
                 self.grid[chosenNeutralMove[0]][chosenNeutralMove[1]] = '0'
                 self.grid[chosenNeutralMove[2]][chosenNeutralMove[3]] = 'N'
+
                 for idx, piece in enumerate(self.neutralPieces):
                     if piece == (chosenNeutralMove[1], chosenNeutralMove[0]):
                         self.neutralPieces[idx] = (chosenNeutralMove[2], chosenNeutralMove[3])
+
         else:
             if not self.neutralPieces:
                 return
@@ -229,18 +333,11 @@ class LGame:
         return bestMove
 
     def minimax(self, player, depth, alpha, beta, maximizing):
-        key = (tuple(tuple(row) for row in self.grid), tuple(self.p1Pos), tuple(self.p2Pos), tuple(sorted(self.neutralPieces)), player, depth, maximizing)
-        if key in self.cache:
-            return self.cache[key]
         if depth == 0:
-            v = self.heuristicEvaluation()
-            self.cache[key] = v
-            return v
+            return self.heuristicEvaluation()
         legalMoves = self.genLegalMoves(player)
         if not legalMoves:
-            v = self.heuristicEvaluation()
-            self.cache[key] = v
-            return v
+            return self.heuristicEvaluation()
         opponent = 'L1' if player == 'L2' else 'L2'
         originalGrid = [row[:] for row in self.grid]
         originalP1Pos = self.p1Pos[:]
@@ -257,7 +354,6 @@ class LGame:
                 alpha = max(alpha, value)
                 if beta <= alpha:
                     break
-            self.cache[key] = value
             return value
         else:
             value = math.inf
@@ -270,7 +366,6 @@ class LGame:
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
-            self.cache[key] = value
             return value
 
     def simulateMove(self, player, move):
