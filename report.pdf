@@ -126,19 +126,16 @@ An explanation of your heuristic evaluation function, backed by your understandi
 -> A difference based heuristic was the simplest because the goal of the program is to make it so your opponenent cannot make a move. Any move you make that makes it so the oppenet can make a less amount of moves is a good move.
 -> By making our heuristic this way we could incorporate depth. Relative advantage helps with cacheing. Like said earlier, it is simple, only keep track of Alpha/beta values as well as the actual move/possible moves. 
 -> You can account for your opponents goal, which in this case is to be able to make a move.
-->
+-> 
 
 A discussion of issues that are relevant for the game: what is the (typical) branching factor? how deep can the game run? can cycles occur and if so how to deal with them? how many states are terminal? etc.
 ->  Branching factor depends on the total available spaces on the board. In a 4x4 there are 16 spaces.
 -> Of the 16 6 are open. You also have to take into account you don't have to move a neutral piece. You must move an L piece.
 -> Depending on the positioning of whats on the board, you have anywhere from 0- the maximum amount of moves. 
 -> It can have an infinite depth because like Chess, if played perfectly, it continues on forever.
-->
-1. Game State Representation: A way to represent the board, the positions of both L pieces, and the neutral pieces.
-2. Legal Actions and State Transition: Functions to generate all valid moves and update the game state.
-3. Game Modes: Implementing different modes (human vs. human, human vs. computer, computer vs. computer).
-4. AI Algorithms: Implementing minimax and alpha-beta pruning with a depth limit.
-5. Heuristic Evaluation Function: A function to estimate the value of a game state for the AI.
-6. User Input Handling: Parsing moves entered by the user in the specified format.
-7. Board Visualization: Printing or plotting the board to show game progress.
-8. Optional Enhancements: Undo functionality, game saving, improved UI, etc
+-> Do to our heuristic cycles do not occur. The branches are pruned once the heuristic score is deemed as the same, it a cycle occur's it is the best possible move for the computer, any other move would be a losing move. 
+-> There are many many unique states. Still there is a goal state and a draw state. In a draw state, moves are still possible for the opponent. 
+-> In goal state, the opponent cannot make a move. To get total possible states you find as many unique positions in which there are both L pieces on the board as well as the neutral pieces. 
+-> With more branching factor you get higher cost of search.
+-> To optimize the program keep the branching factor at its lowest.
+
