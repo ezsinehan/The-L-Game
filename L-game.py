@@ -237,16 +237,14 @@ class LGame:
 
     def startGame(self):
         while True:
-                # Menu to start the game or edit starting states
                 choice = input("Select an option: (1) Start Game, (2) Edit Starting States: ")
                 if choice == '1':
-                    break  # Start the game
+                    break 
 
                 elif choice == '2':
-                    # Edit starting states
                     inputstr = input("Enter New Initial State: ")
                     self.editInitialState(inputstr)
-                    break  # Exit the menu after editing starting states
+                    break  
 
                 else:
                     print("Invalid input. Please select '1' to start the game or '2' to edit the starting states.")
@@ -313,32 +311,26 @@ class LGame:
     def moveNeutralPiece(self, chosenNeutralMove):
         cType = self.p1Type if self.currentPlayer == 'L1' else self.p2Type
 
-        # Human Player Move
         if cType == 'human':
             if chosenNeutralMove is not None:
                 oldX, oldY, newX, newY = chosenNeutralMove
 
-                # Check if the starting position is a valid neutral piece
                 if (oldX, oldY) not in self.neutralPieces:
                     print("Error: Invalid starting neutral piece position.")
                     return
 
-                # Ensure the target position is empty
                 if self.grid[newX][newY] != '0':
                     print("Error: Target position is not empty.")
                     return
 
-                # Update the grid
                 self.grid[oldX][oldY] = '0'
                 self.grid[newX][newY] = 'N'
 
-                # Update the neutralPieces list
                 for idx, piece in enumerate(self.neutralPieces):
                     if piece == (oldX, oldY):
                         self.neutralPieces[idx] = (newX, newY)
                         break
 
-        # AI Player Move
         else:
             if not self.neutralPieces:
                 return
@@ -348,19 +340,15 @@ class LGame:
                 pieceIndex, newX, newY = aiMove
                 oldX, oldY = self.neutralPieces[pieceIndex]
 
-                # Update the grid
                 self.grid[oldX][oldY] = '0'
                 self.grid[newX][newY] = 'N'
 
-                # Update the neutralPieces list
                 self.neutralPieces[pieceIndex] = (newX, newY)
 
-        # Validate neutral pieces count
         self.validateNeutralPieces()
 
 
     def validateNeutralPieces(self):
-        # Count 'N' pieces on the grid
         neutral_count = sum(cell == 'N' for row in self.grid for cell in row)
         if neutral_count != 2:
             print(f"Error: Invalid number of neutral pieces ({neutral_count}). Resetting...")
