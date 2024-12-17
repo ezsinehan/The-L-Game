@@ -11,11 +11,21 @@ Nihar Palkonda->
 
 Sources Used ->
   -> https://hwwmath.looiwenli.com/l-game -> We used this interactive game to learn how to play.
-
+  -> AIMA 4th edition ch 3 and 4 -> specificaly from these chapters we made sure to inmplement an admissable heuristic and decided on a difference based heuristic. 
+  -> A difference based heuristic was the simplest because the goal of the program is to make it so your opponenent cannot make a move. Any move you make that makes it so the oppenet can make a less amount of moves is a good move.
+  -> OS library to manage game
+  ->
 A description of the design decisions you took, in particular the choice for data structures (e.g. for the representation of the state and legal actions, the search tree, etc.) and functions, with an explanation of what they do.
 -> We decided to start by designing the game representation as a 2D matrix and print it through text in the terminal, at least for now. 
+-> To check valid moves we indexed the matrix and did a simple nested for loop.
+-> When generating a data structure that holds all the possible moves a player can make, we were looking for something that would allow us to loop through/nest through so that every unique position is taken into account. The optimal data structure to do so is an array.
+-> After the array is created, it is then turned into a set so that in future use everything is unique as well as search cost is cheaper.
+-> To implent a minimax we had to parse through our possible moves and use our heuristic to determine the best move.
+-> Implementing a minimax with alpha beta pruning is essential because without some form of alpha beta pruning there wouldn't be an effective way to choose the optimal move.
+-> The alpha beta pruning is implemented within our method by reinitializing alpha with each move. The highest alpha value is the move that is returned.
+-> Caching is important because it allows us to store things that are going to be used again, and if used again, optimal search cost.
+-> The optimal way of caching would be to use a dictionary because there is the ability to make the search cost low.
 -> 
-
 An explanation of your heuristic evaluation function, backed by your understanding of the game.
 -> 
 
@@ -30,4 +40,3 @@ A discussion of issues that are relevant for the game: what is the (typical) bra
 6. User Input Handling: Parsing moves entered by the user in the specified format.
 7. Board Visualization: Printing or plotting the board to show game progress.
 8. Optional Enhancements: Undo functionality, game saving, improved UI, etc
-
