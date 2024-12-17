@@ -79,11 +79,8 @@ class LGame:
             print("-" * 17)
 
     def parseInput(self, input_str):
-        print(input_str)
         parts = input_str.split()
-        print(parts)
         if len(parts) != 3 and len(parts) != 7:
-            print(len(parts))
             print("Invalid Format")
             return None, None
         x, y = int(parts[1])-1, int(parts[0])-1
@@ -280,6 +277,7 @@ class LGame:
                 winner = 'L2' if self.currentPlayer == 'L1' else 'L1'
                 print(f"No legal moves left for {self.currentPlayer}. {winner} wins!")
                 break
+            self.printGrid()
             print(f"Current Player: {self.currentPlayer}")
             cType = self.p1Type if self.currentPlayer == 'L1' else self.p2Type
             if cType == 'human':
