@@ -6,7 +6,10 @@ Sinehan ->
   -> Coded legal move generation
   -> 
 Vedant ->
-  -> 
+  -> Set up how moves are dealt with
+  -> Set up the orientation of the L pieces
+  -> Parsed the string and moved the pieces
+  -> Made the game state changable
 Nihar Palkonda->
 
 Sources Used ->
