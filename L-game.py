@@ -1,6 +1,7 @@
 import sys
 import os
 import math
+import time
 from itertools import permutations
 
 class LGame:
@@ -26,6 +27,7 @@ class LGame:
         self.p1Type = None
         self.p2Type = None
         self.aiDepth = None
+        self.aiSearchDelay = 0.0
         self.cache = {}
 
     def clearScreen(self):
@@ -77,6 +79,75 @@ class LGame:
         for row in self.grid:
             print(" | ".join(f"{cell:2}" for cell in row))
             print("-" * 17)
+
+    # --- Visualizer-only styling (ANSI; only used when AI is thinking) ---
+    _R = "\033[0m"
+    _DIM = "\033[2m"
+    _B = "\033[1m"
+    _C = "\033[36m"
+    _M = "\033[35m"
+    _Y = "\033[33m"
+    _G = "\033[32m"
+    _W = "\033[97m"
+
+    def _vcell(self, s):
+        if s == "L1":
+            return f"{self._C}{self._B}{s:2}{self._R}"
+        if s == "L2":
+            return f"{self._M}{self._B}{s:2}{self._R}"
+        if s == "N":
+            return f"{self._Y}{self._B}{s:2}{self._R}"
+        return f"{self._DIM} · {self._R}"
+
+    def _drawAI(self, player, depth, idx, total, move, value, bestValue, bestMove, isNewBest, cutoff=False):
+        self.clearScreen()
+        print(f"\n{self._W}{self._B}  ╔══════════════════════════════════════╗{self._R}")
+        print(f"{self._W}{self._B}  ║  AI THINKING  ·  {player}  ·  depth = {depth:<2}  ║{self._R}")
+        print(f"{self._W}{self._B}  ╚══════════════════════════════════════╝{self._R}\n")
+        filled = int(12 * (idx + 1) / total) if total else 12
+        bar = "█" * filled + "░" * (12 - filled)
+        print(f"  {self._DIM}Root moves{self._R}   [{self._C}{bar}{self._R}]  {self._B}{idx + 1}{self._R}/{total}\n")
+        for row in self.grid:
+            print(" | ".join(f"{cell:2}" for cell in row))
+            print("-" * 17)
+        print()
+        print(f"  {self._DIM}Evaluating L at{self._R} {self._B}{sorted(move)}{self._R}")
+        if value is not None:
+            sv = "-∞" if value == -math.inf else ("+∞" if value == math.inf else str(value))
+            print(f"  {self._DIM}Score{self._R}  →  {self._B}{sv}{self._R}" + (f"  {self._G}(new best!){self._R}" if isNewBest else ""))
+            if bestMove is not None:
+                print(f"  {self._DIM}Best so far{self._R}  →  {sorted(bestMove)}  {self._B}{bestValue}{self._R}")
+        else:
+            print(f"  {self._DIM}Score{self._R}  →  {self._Y}(evaluating...){self._R}")
+        if cutoff:
+            print(f"  {self._Y}α-β cutoff → skipping rest of root moves.{self._R}")
+        print()
+        sys.stdout.flush()
+
+    def _drawAIFinal(self, bestMove, bestValue):
+        v = bestValue if bestValue not in (math.inf, -math.inf) else ("+∞" if bestValue == math.inf else "-∞")
+        print(f"\n  {self._W}{self._B}┌─────────────────────────────────────┐{self._R}")
+        print(f"  {self._W}{self._B}│  AI CHOSE  {sorted(bestMove)}  →  score {v}  │{self._R}")
+        print(f"  {self._W}{self._B}└─────────────────────────────────────┘{self._R}\n")
+        sys.stdout.flush()
+
+    def _printMoveHelp(self):
+        """Print how to enter a valid move (for human players)."""
+        print()
+        print("=== How to enter a move ===")
+        print("Grid columns and rows are numbered 1 to 4. Row 1 is the top, column 1 is the left.")
+        print()
+        print("Format 1 — L-piece only (no neutral move):")
+        print("  COL ROW ORIENTATION")
+        print("  Example: 2 1 n   (place L with pivot at column 2, row 1, orientation north)")
+        print()
+        print("Format 2 — L-piece + move one neutral piece:")
+        print("  COL ROW ORIENTATION  COL_FROM ROW_FROM  COL_TO ROW_TO")
+        print("  Example: 2 1 n  1 2  3 2   (L at 2,1 orientation n; move neutral from 1,2 to 3,2)")
+        print()
+        print("Orientations: n (north), s (south), e (east), w (west)")
+        print("The L must end up in a legal position; try different orientations if one is rejected.")
+        print()
 
     def parseInput(self, input_str):
         parts = input_str.split()
@@ -271,6 +342,11 @@ class LGame:
                 self.aiDepth = int(d)
             else:
                 self.aiDepth = 3
+            delay_str = input("Pause between steps in seconds (0 for none): ").strip()
+            try:
+                self.aiSearchDelay = max(0.0, float(delay_str))
+            except ValueError:
+                self.aiSearchDelay = 0.0
         while True:
             legalMoves = self.genLegalMoves(self.currentPlayer)
             if len(legalMoves) <= 1:
@@ -283,10 +359,13 @@ class LGame:
             if cType == 'human':
                 chosenMove = None
                 while chosenMove == None:
-                    userInput = input("Enter your move: ")
+                    userInput = input("Enter your move (or 'help' for format): ").strip()
                     if userInput.lower() == 'q':
                         print("Quitting the game.")
                         return 0
+                    if userInput.lower() == 'help':
+                        self._printMoveHelp()
+                        continue
                     chosenMove, chosenNeutralMove = self.parseInput(userInput)
             else:
                 chosenMove = self.chooseAiMoveMinimax(legalMoves, self.currentPlayer, self.aiDepth)
@@ -364,9 +443,20 @@ class LGame:
         originalP1Pos = self.p1Pos[:]
         originalP2Pos = self.p2Pos[:]
         originalNeutrals = self.neutralPieces[:]
-        for move in legalMoves:
+        total = len(legalMoves)
+        for idx, move in enumerate(legalMoves):
             self.simulateMove(player, move)
+            self._drawAI(player, depth, idx, total, move, None, bestValue, bestMove, False, False)
             value = self.minimax(opponent, depth - 1, alpha, beta, maximizing=(opponent == 'L2'))
+            isNewBest = value > bestValue
+            sv = "-∞" if value == -math.inf else ("+∞" if value == math.inf else str(value))
+            print(f"  {self._DIM}Score{self._R}  →  {self._B}{sv}{self._R}" + (f"  {self._G}(new best!){self._R}" if isNewBest else ""))
+            if bestMove is not None:
+                print(f"  {self._DIM}Best so far{self._R}  →  {sorted(bestMove)}  {self._B}{bestValue}{self._R}")
+            print()
+            sys.stdout.flush()
+            if self.aiSearchDelay > 0:
+                time.sleep(self.aiSearchDelay)
             self.restoreState(originalGrid, originalP1Pos, originalP2Pos)
             self.neutralPieces = originalNeutrals[:]
             if value > bestValue:
@@ -374,7 +464,12 @@ class LGame:
                 bestMove = move
             alpha = max(alpha, value)
             if beta <= alpha:
+                self.clearScreen()
+                print(f"\n  {self._Y}α-β cutoff → skipping rest of root moves.{self._R}\n")
+                sys.stdout.flush()
                 break
+        if bestMove is not None:
+            self._drawAIFinal(bestMove, bestValue)
         return bestMove
 
     def minimax(self, player, depth, alpha, beta, maximizing):
